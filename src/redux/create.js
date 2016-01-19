@@ -4,11 +4,9 @@ import transitionMiddleware from './middleware/transitionMiddleware';
 import { syncHistory } from 'redux-simple-router';
 
 // Cria store
-// no client createHistory posseui middleware scroll-behavior
-// faz um scrollUp on routeChange
-export default function createStore(getRoutes, createHistory, clientApi, data) {
-  const history = createHistory();
-
+// no client a history possui o middleware scroll-behavior
+// (scrollUp on routeChange)
+export default function createStore(getRoutes, history, clientApi, data) {
   // Sync dispatched route actions to the history
   const reduxRouterMiddleware = syncHistory(history);
 

@@ -16,7 +16,7 @@ import getRoutes from './routes';
 import makeRouteHooksSafe from './helpers/makeRouteHooksSafe';
 
 // Documented here: https://github.com/rackt/scroll-behavior
-const scrollableHistory = useScroll(createHistory);
+const scrollableHistory = useScroll(createHistory)();
 
 const clientApi = new ApiClient();
 
@@ -39,9 +39,7 @@ function initSocket() {
 global.socket = initSocket();
 
 const component = (
-  <Router history={scrollableHistory()}>
-    {getRoutes()}
-  </Router>
+  <Router routes={getRoutes()} history={scrollableHistory} />
 );
 
 ReactDOM.render(
