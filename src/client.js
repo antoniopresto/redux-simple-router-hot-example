@@ -3,26 +3,25 @@
  */
 import 'babel/polyfill';
 import React from 'react';
+import {Router} from 'react-router';
 import ReactDOM from 'react-dom';
-import createHistory from 'history/lib/createBrowserHistory';
 import useScroll from 'scroll-behavior/lib/useStandardScroll';
 import createStore from './redux/create';
 import ApiClient from './helpers/ApiClient';
 import io from 'socket.io-client';
 import {Provider} from 'react-redux';
-import {reduxReactRouter, ReduxRouter} from 'redux-router';
+import { createHistory } from 'history';
 
 import getRoutes from './routes';
 import makeRouteHooksSafe from './helpers/makeRouteHooksSafe';
 
-const client = new ApiClient();
-
-// Three different types of scroll behavior available.
 // Documented here: https://github.com/rackt/scroll-behavior
 const scrollableHistory = useScroll(createHistory);
 
+const clientApi = new ApiClient();
+
 const dest = document.getElementById('content');
-const store = createStore(reduxReactRouter, makeRouteHooksSafe(getRoutes), scrollableHistory, client, window.__data);
+const store = createStore(makeRouteHooksSafe(getRoutes), scrollableHistory, clientApi, window.__data);
 
 function initSocket() {
   const socket = io('', {path: '/ws'});
@@ -40,7 +39,9 @@ function initSocket() {
 global.socket = initSocket();
 
 const component = (
-  <ReduxRouter routes={getRoutes(store)} />
+  <Router history={scrollableHistory()}>
+    {getRoutes()}
+  </Router>
 );
 
 ReactDOM.render(
@@ -54,7 +55,8 @@ if (process.env.NODE_ENV !== 'production') {
   window.React = React; // enable debugger
 
   if (!dest || !dest.firstChild || !dest.firstChild.attributes || !dest.firstChild.attributes['data-react-checksum']) {
-    console.error('Server-side React render was discarded. Make sure that your initial render does not contain any client-side code.');
+    // console.error('Server-side React render was discarded. Make sure that your initial render does not contain any client-side code.');
+    console.info('no ssr.');
   }
 }
 

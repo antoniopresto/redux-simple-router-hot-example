@@ -1,9 +1,18 @@
 import { createStore as _createStore, applyMiddleware, compose } from 'redux';
 import createMiddleware from './middleware/clientMiddleware';
 import transitionMiddleware from './middleware/transitionMiddleware';
+import { syncHistory } from 'redux-simple-router';
 
-export default function createStore(reduxReactRouter, getRoutes, createHistory, client, data) {
-  const middleware = [createMiddleware(client), transitionMiddleware];
+// Cria store
+// no client createHistory posseui middleware scroll-behavior
+// faz um scrollUp on routeChange
+export default function createStore(getRoutes, createHistory, clientApi, data) {
+  const history = createHistory();
+
+  // Sync dispatched route actions to the history
+  const reduxRouterMiddleware = syncHistory(history);
+
+  const middleware = [createMiddleware(clientApi), transitionMiddleware, reduxRouterMiddleware];
 
   let finalCreateStore;
   if (__DEVELOPMENT__ && __CLIENT__ && __DEVTOOLS__) {
@@ -18,16 +27,20 @@ export default function createStore(reduxReactRouter, getRoutes, createHistory, 
     finalCreateStore = applyMiddleware(...middleware)(_createStore);
   }
 
-  finalCreateStore = reduxReactRouter({ getRoutes, createHistory })(finalCreateStore);
-
   const reducer = require('./modules/reducer');
   const store = finalCreateStore(reducer, data);
+
+  // Required for replaying actions from devtools to work
+  reduxRouterMiddleware.listenForReplays(store);
 
   if (__DEVELOPMENT__ && module.hot) {
     module.hot.accept('./modules/reducer', () => {
       store.replaceReducer(require('./modules/reducer'));
     });
   }
+
+  // ( ͡° ͜ʖ ͡°)
+  global.APP_STORE = store;
 
   return store;
 }
