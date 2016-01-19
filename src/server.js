@@ -13,7 +13,7 @@ import PrettyError from 'pretty-error';
 import http from 'http';
 
 import createHistory from 'history/lib/createMemoryHistory';
-import {RouterContext, match} from 'react-router';
+import {Router, RouterContext, match} from 'react-router';
 import {Provider} from 'react-redux';
 import qs from 'query-string';
 import getRoutes from './routes';
@@ -66,9 +66,11 @@ app.use((req, res) => {
     // hot module replacement is enabled in the development env
     webpackIsomorphicTools.refresh();
   }
-  const client = new ApiClient(req);
 
+  const history = createHistory();
+  const clientApi = new ApiClient(req);
   const routes = getRoutes();
+  const store = createStore(history, clientApi);
 
   match({ routes, location: req.url }, (error, redirectLocation, renderProps) => {
    if (error) {
@@ -81,9 +83,23 @@ app.use((req, res) => {
     if (status)
       res.status(status);
 
+    history.push(req.url);
+    
+    const component = (
+      <Provider store={store} key="provider">
+        <Router routes={routes} history={history} />
+      </Provider>
+    );
+
     res.send(
       '<!doctype html>\n' +
-      renderToString( <Html assets={webpackIsomorphicTools.assets()} /> )
+      renderToString(
+        <Html
+          assets={webpackIsomorphicTools.assets()}
+          store={store}
+          component={component}
+        />
+      )
     )
 
    } else {

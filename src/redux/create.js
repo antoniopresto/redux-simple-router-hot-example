@@ -6,7 +6,7 @@ import { syncHistory } from 'redux-simple-router';
 // Cria store
 // no client a history possui o middleware scroll-behavior
 // (scrollUp on routeChange)
-export default function createStore(getRoutes, history, clientApi, data) {
+export default function createStore(history, clientApi, data) {
   // Sync dispatched route actions to the history
   const reduxRouterMiddleware = syncHistory(history);
 

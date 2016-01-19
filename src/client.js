@@ -13,15 +13,16 @@ import {Provider} from 'react-redux';
 import { createHistory } from 'history';
 
 import getRoutes from './routes';
-import makeRouteHooksSafe from './helpers/makeRouteHooksSafe';
 
 // Documented here: https://github.com/rackt/scroll-behavior
 const scrollableHistory = useScroll(createHistory)();
 
+global.HISTORIA = scrollableHistory;
+
 const clientApi = new ApiClient();
 
 const dest = document.getElementById('content');
-const store = createStore(makeRouteHooksSafe(getRoutes), scrollableHistory, clientApi, window.__data);
+const store = createStore(scrollableHistory, clientApi, window.__data);
 
 function initSocket() {
   const socket = io('', {path: '/ws'});
